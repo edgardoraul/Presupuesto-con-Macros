@@ -1,108 +1,223 @@
+' ====================================
+'		MODULO PRESUPUESTO
+' ====================================
+
 Option Explicit
-Dim ruta As String
-Dim nombre As String
-Dim archivo As String
+Public Ruta As String
+' Guarda una copia en pdf y abre el archivo
+Sub guardaPdf()
+    Dim Rutita As String
+    Dim nombre As String
+    Rutita = ActiveWorkbook.Path
+    nombre = Year(Date) & "-" & Month(Date) & "-" & Day(Date) & ". PRESUPUESTO - " & Range("B4").Value
 
-Sub Presupuesto()
-	'Se asignan valores a las variables globales
-	ruta = ActiveWorkbook.Path
-	nombre = Left(ActiveWorkbook.Name, InStrRev(ActiveWorkbook.Name, ".") - 1)
-	archivo = ActiveWorkbook.FullName
-	Debug.Print archivo
+    Dim fecha As String
+    fecha = Year(Date) & "-" & Month(Date) & "-" & Day(Date)
 
-	'## Crea un presupuesto. ¿Está cargado este cliente de antes?
-	'if then
-		'Sí. Abre un cuadro de diálogo para buscar el presupuesto donde tomar los datos
-		'¿Mismas condiciones que antes? (iva, plazo, etc...)
-		'Cuadro de diálogo que pregunta
-		'if then NO
-			' Nuevas condiciones
-		'else SI
-			' Deja las que estaban
-		'end if
-
-		'Renombra el nuevo presupuesto
-		'Call saveFile(nombre)
-	'else
-		'Genera un archivo nuevo
-		'Nuevas condiciones
-		'Call saveFile(ruta, nombre)
-	'end if
-
-	'## Actualiza en segundo plano los precios
-
-	'## ¿Se usará SKU?
-	'Cuadro de diálogo que pregunta
-	' if then SI
-		' Se coloca fórmula a medida que va escribiendo
-		' para mostrar leyenda junto con el respectivo precio
-	' else NO
-		'Se carga todo manual
-	' end if
-
-	'## El usuario va cargando talles, colores y cantidades
-
-	'## ¿Tiene foto? Preguntar con cuadro de diálogo
-	'If SI Then
-		' Buscar archivo automático de foto y elige la primera
-		' Call cargaFoto(sku)
-	'else NO
-		'Seguir sin foto, nomás
-	'end if
-
-	'## Guarda cambios, publica en pdf y cierra el archivo
-	'Call guardaPdf(ruta)
+    nombre = ThisWorkbook.Path & "\" & fecha & ". PRESUPUESTO - " & Worksheets(1).Range("B4").Value & ".xlsm"
+    ThisWorkbook.SaveCopyAs nombre
+    
+    ActiveWorkbook.Save
+    nombre = fecha & ". PRESUPUESTO - " & Worksheets(1).Range("B4").Value
+    ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
+        Rutita & "\" & nombre & ".pdf", _
+        Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas _
+        :=False, OpenAfterPublish:=True
+    
+    ' Muestra el archivo en carpeta para enviar por mail o imprimir.
+    Shell "explorer " & Rutita, vbNormalFocus
+    
 End Sub
-Function cargaFoto(sku)
-' ¿Hay foto?
-'If YES Then
-	' carga foto
-'Else
-	' buscar manual
-'End If
-End Function
-Function saveFile(ruta, nombre)
-	' GUARDA EL ARCHIVO CON UN CRITERIO
-	' Número incremental
-	' Palabra Presupuesto
-	' Nombre o razón social del cliente
-End Function
 
-Function guardaPdf(ruta, nombre)
-	' Guarda una copia en pdf y abre el archivo
+Sub insertarFila()
+    Dim ultimaConDatos As Integer
+    
+    ultimaConDatos = Cells(8, 1).End(xlDown).Row
+    
+    ' Inserta una fila arriba, copiando el formato de la de abajo.
+    Rows(9).Insert Shift:=xlShiftUp, CopyOrigin:=xlFormatFromRightOrBelow
+    Cells(9, 1).Activate
+End Sub
 
-	ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
-		ruta & "\" & nombre & ".pdf", _
-		Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas _
-		:=False, OpenAfterPublish:=True
-	ActiveWorkbook.Save
-	ActiveWorkbook.Close
-End Function
-Function exceljson()
-	'Obtiene la información vía rest api
-	Dim http As Object, JSON As Object, i As Integer, item As Variant
-	Set http = CreateObject("MSXML2.XMLHTTP")
-	http.Open "GET", "http://jsonplaceholder.typicode.com/users", False
-	http.send
-	Set JSON = ParseJson(http.responseText)
-	i = 2
-	For Each item In JSON
-		With Worksheets("Resultados")
-			.Cells(i, 1).Value = item("id")
-			.Cells(i, 2).Value = item("name")
-			.Cells(i, 3).Value = item("username")
-			.Cells(i, 4).Value = item("email")
-			.Cells(i, 5).Value = item("address")("city")
-			.Cells(i, 6).Value = item("phone")
-			.Cells(i, 7).Value = item("website")
-			.Cells(i, 8).Value = item("company")("name")
-		End With
-		i = i + 1
-	Next
-	MsgBox ("complete")
-End Function
+Sub borrarFila()
+    Dim i As Byte
+    
+    If Cells(9, 1).Value = "" And Cells(9, 3).Value = "" And Cells(9, 4).Value = "" And Cells(9, 5).Value = "" And Cells(9, 6).Value = "" Then
+        Rows(9).Delete
+    Else
+        ' Recorre la fila para que el usuario borre el contenido. Da tiempo de arrepentirse.
+        For i = 1 To 8
+            If Cells(9, i) <> "" Then
+                MsgBox "Primero borrá el contenido."
+                Cells(9, i).Activate
+                Exit Sub
+            End If
+        Next i
+    End If
+    Cells(9, 1).Activate
+End Sub
+
+
+' ====================================
+'		THISWORKBOOK (Eventos)
+' ====================================
+Option Explicit
+
 Private Sub Workbook_BeforeClose(Cancel As Boolean)
-	ThisWorkbook.Save
+    ' Desactivo el cuadro de diálogo.
+    Cancel = False
+    ActiveWorkbook.Save
 End Sub
 
+Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
+    SaveAsUI = False
+    Cancel = False
+    Dim nombre As String
+    Dim fecha As String
+    fecha = Year(Date) & "-" & Month(Date) & "-" & Day(Date)
+    nombre = ThisWorkbook.Path & "\" & fecha & ". PRESUPUESTO - " & Worksheets(1).Range("B4").Value & ".xlsm"
+    ActiveWorkbook.SaveCopyAs nombre
+End Sub
+
+Private Sub Workbook_Open()
+    Dim hojita As Worksheet
+    Dim ws As Object
+    Set ws = CreateObject("WScript.network")
+    
+    Application.EnableEvents = True ' Re-activar eventos
+    
+    ' Asignando algunos valores de acuerdo en qué equipo de la red esté
+    If ws.ComputerName = "EDGAR" Then
+        Ruta = "D:\Web\imagenes_rerda\"
+    Else
+        Ruta = "\\EDGAR\Web\imagenes_rerda\"
+    End If
+
+End Sub
+
+Function mostrarErrorRed()
+    MsgBox ("Hay que prender la computadora EDGAR")
+End Function
+
+
+
+' ====================================
+'		HOJA1: PRESUPUESTO
+' ====================================
+Option Explicit
+
+Private Sub Worksheet_Change(ByVal Target As Range)
+    Dim rng As Range
+    Dim cel As Range
+    Dim codigo As String
+    Dim imagePath As String
+    Dim imgPath As String
+    Dim existingPic As Picture
+    Dim picToDelete As Picture
+    Dim originalRowHeight As Double
+    Dim rowHasImage As Boolean
+    Dim ultimaConDatos As Integer
+    
+    originalRowHeight = 18
+    ' Define el rango de celdas que activará el evento (por ejemplo, columna A)
+    ultimaConDatos = Cells(8, 1).End(xlDown).Row
+    Set rng = Intersect(Target, Range(Cells(9, 1), Cells(ultimaConDatos, 1)))
+
+    If Not rng Is Nothing Then
+        Application.EnableEvents = False ' Desactivar eventos para evitar bucles infinitos
+
+        For Each cel In rng
+            codigo = cel.Value
+            If codigo <> "" Then
+                               
+                ' Comprobar si la carpeta correspondiente al código del producto existe
+                imgPath = Ruta & codigo & "\"
+                
+                Debug.Print imgPath
+                
+                If Dir(imgPath, vbDirectory) <> "" Then
+                    ' Obtener la primera imagen en la carpeta
+                    imagePath = Dir(imgPath & "*.*")
+
+                    ' Comprobar si se encontró alguna imagen en la carpeta
+                    If imagePath <> "" Then
+                    
+                        ' Guardar la altura original de la fila
+                        ' originalRowHeight = cel.EntireRow.RowHeight
+                        
+                        rowHasImage = True
+
+                        ' Eliminar imagen existente en la misma fila
+                        For Each existingPic In cel.Offset(0, 7).Parent.Pictures
+                            If Not Intersect(existingPic.TopLeftCell.EntireRow, cel.EntireRow) Is Nothing Then
+                                existingPic.Delete
+                                rowHasImage = False
+                            End If
+                        Next existingPic
+
+                        ' Insertar la nueva imagen en la celda adyacente
+                        With cel.Offset(0, 7)
+                            .ColumnWidth = 20 ' Ajustar el ancho de la columna para la imagen
+                            .RowHeight = 108 ' Ajustar la altura de la fila para la imagen
+                            .Activate
+                            Set picToDelete = ActiveSheet.Pictures.Insert(imgPath & imagePath)
+
+
+                            With picToDelete
+                                .Top = .TopLeftCell.Top + 4
+                                .Left = .TopLeftCell.Left + 4
+                                .ShapeRange.LockAspectRatio = msoTrue
+                                .ShapeRange.Height = 100
+                            End With
+
+                        End With
+                        
+                        
+                        ' Agregar borde superior a las celdas de la columna 1 a la 8
+                        If cel.Column <= 7 And cel.Row >= 8 Then
+                            Me.Cells(cel.Row, 1).Resize(1, 8).Borders(xlEdgeTop).LineStyle = xlContinuous
+                        End If
+
+                    Else
+                    
+                        ' Restaurar la altura original de la fila, sólo si no hay imagen, de lo contrario se autoajusta al contenido
+                        If rowHasImage Then
+                            cel.EntireRow.RowHeight = originalRowHeight
+                        End If
+                        rowHasImage = False
+                        
+                        
+                    End If
+                
+                Else
+                    ' Acomoda el alto de la fila de acuerdo al contenido
+                    cel.EntireRow.AutoFit
+                    
+                End If
+            Else
+                ' Restaurar la altura original de la fila si se borra el contenido de la celda
+                cel.EntireRow.RowHeight = originalRowHeight
+                
+            End If
+            
+            ' Introducir la fórmula en la celda de la columna 2 si se edita una celda en la columna 1
+            If cel.Column = 1 Then
+                Dim formulaCel As Range
+                Set formulaCel = cel.Offset(0, 1)
+                formulaCel.Formula = "=IFERROR(VLOOKUP(" & cel.Address & ",Resultados!A$1:E$10000,2,FALSE),"""")"
+            End If
+            
+            ' Introducir la fórmula en la celda de la columna 7 si se edita una celda en la columna 1
+            If cel.Column = 1 Then
+                Dim formulaCel2 As Range
+                Set formulaCel2 = cel.Offset(0, 6)
+                formulaCel2.Formula = "=IF(E" & cel.Row & "*F" & cel.Row & "=0,"""",E" & cel.Row & "*F" & cel.Row & ")"
+            End If
+            ' Para parase en la fila siguiente
+            cel.Offset(1, 0).Activate
+        Next cel
+        
+    End If
+    Application.EnableEvents = True ' Re-activar eventos
+End Sub
 
