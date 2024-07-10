@@ -19,11 +19,11 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     Dim picToDelete As Picture
     Dim originalRowHeight As Double
     Dim rowHasImage As Boolean
-    Dim ultimaConDatos As Integer
+    'Dim ultimaConDatos As Integer
     Dim ws As Worksheet
     Dim password As String
 
-    password = "Rerda" ' Contraseña para proteger y desproteger
+    password = "Rerda2024" ' Contraseña para proteger y desproteger
     Set ws = Me ' Refierete a la hoja actual
     
     Call creandoRuta
@@ -31,12 +31,7 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     originalRowHeight = 18
     
     ' Control para evitar errores de desbordamiento.
-    ultimaConDatos = Cells(Rows.Count, 1).Offset(0, 5).End(xlUp).Row - 2
-    If ultimaConDatos >= 9 Then
-        ultimaConDatos = Cells(8, 1).Offset(0, 5).End(xlDown).Row - 2
-    Else
-        Exit Sub
-    End If
+    Call ultima
     
     ' Define el rango de celdas que activará el evento (por ejemplo, columna A)
     Set rng = Intersect(Target, Range(Cells(9, 1), Cells(ultimaConDatos, 1)))
@@ -76,7 +71,7 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                         With cel.Offset(0, 7)
                             .ColumnWidth = 20 ' Ajustar el ancho de la columna para la imagen
                             .RowHeight = 108 ' Ajustar la altura de la fila para la imagen
-                            .Activate
+                            
                             Set picToDelete = ws.Pictures.Insert(imgPath & imagePath)
 
                             With picToDelete

@@ -10,8 +10,11 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private Sub Workbook_BeforeClose(Cancel As Boolean)
+    'password = "Rerda2024" ' Contraseña para proteger y desproteger
     ' Desactivo el cuadro de diálogo.
     Cancel = False
+    
+    'ActiveWorkbook.Protect password:=password
     ActiveWorkbook.Save
 End Sub
 
@@ -34,12 +37,30 @@ Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
 End Sub
 
 Private Sub Workbook_Open()
+    Dim hojita As Worksheet
+    Dim password As String
+    password = "Rerda2024"
+      
+    ActiveWorkbook.Unprotect password:=password
+    
+    ' Ocultando algunas
+    Sheets(1).Visible = True
+    Sheets(2).Visible = False
+    Sheets(3).Visible = False
 
+   
     ' Actualizando la ruta
     Call creandoRuta
     
     ' Dar formato de impresión
     Call darFormato
+    
+    ' Protegiendo las hojas
+    For Each hojita In Application.Worksheets
+        hojita.Protect password:=password, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
+    Next hojita
+    
+    ActiveWorkbook.Protect password:=password
 End Sub
 
 

@@ -41,7 +41,8 @@ Sub insertarFila()
     ' Inserta una fila arriba, copiando el formato de la de abajo.
     Rows(9).Insert Shift:=xlShiftUp, CopyOrigin:=xlFormatFromRightOrBelow
     Cells(9, 1).Activate
-    ultimaConDatos = Cells(Rows.Count, 1).End(xlUp).Row
+    'ultimaConDatos = Cells(Rows.Count, 1).End(xlUp).Row
+    Call ultima
     Debug.Print "La última fila es " & ultimaConDatos
     
     ' Actualiza la autosuma
@@ -71,8 +72,9 @@ Sub borrarFila()
         Next i
     End If
     Cells(9, 1).Activate
-    ultimaConDatos = Cells(8, 1).End(xlDown).Row
-    ultimaConDatos = Cells(Rows.Count, 1).End(xlUp).Row
+    'ultimaConDatos = Cells(8, 1).End(xlDown).Row
+    'ultimaConDatos = Cells(Rows.Count, 1).End(xlUp).Row
+    Call ultima
     Debug.Print "La última fila es " & ultimaConDatos
     actualizarSuma (ultimaConDatos)
 End Sub
@@ -114,4 +116,13 @@ End Sub
 
 Function mostrarErrorRed()
     MsgBox ("Hay que prender la computadora EDGAR")
+End Function
+
+Function ultima()
+    ultimaConDatos = Cells(Rows.Count, 1).Offset(0, 6).End(xlUp).Row - 3
+    If ultimaConDatos >= 9 Then
+        ultimaConDatos = Cells(8, 1).Offset(0, 6).End(xlDown).Row - 3
+    Else
+        Exit Function
+    End If
 End Function
