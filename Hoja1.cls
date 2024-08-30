@@ -21,9 +21,9 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     Dim rowHasImage As Boolean
     'Dim ultimaConDatos As Integer
     Dim ws As Worksheet
-    Dim password As String
+    Dim pass As String
 
-    password = "Rerda2024" ' Contraseña para proteger y desproteger
+    pass = "Rerda2024" ' Contraseña para proteger y desproteger
     Set ws = Me ' Refierete a la hoja actual
     
     Call creandoRuta
@@ -40,7 +40,7 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         Application.EnableEvents = False ' Desactivar eventos para evitar bucles infinitos
 
         ' Desproteger la hoja antes de hacer cambios
-        ws.Unprotect password:=password
+        ws.Unprotect password:=pass
 
         For Each cel In rng
             codigo = cel.Value
@@ -120,7 +120,8 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         Next cel
         
         ' Proteger la hoja después de hacer cambios
-        ws.Protect password:=password, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
+        ws.Protect password:=pass, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
+        Application.EnableEvents = True ' Aactivar eventos
     End If
 
     Application.EnableEvents = True ' Re-activar eventos

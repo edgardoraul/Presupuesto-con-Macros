@@ -10,11 +10,12 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private Sub Workbook_BeforeClose(Cancel As Boolean)
-    'password = "Rerda2024" ' Contraseña para proteger y desproteger
+    Dim pass As String
+    pass = "Rerda2024" ' Contraseña para proteger y desproteger
     ' Desactivo el cuadro de diálogo.
     Cancel = False
     
-    'ActiveWorkbook.Protect password:=password
+    ActiveWorkbook.Protect password:=pass
     ActiveWorkbook.Save
 End Sub
 
@@ -38,10 +39,10 @@ End Sub
 
 Private Sub Workbook_Open()
     Dim hojita As Worksheet
-    Dim password As String
-    password = "Rerda2024"
+    Dim pass As String
+    pass = "Rerda2024"
       
-    ActiveWorkbook.Unprotect password:=password
+    ActiveWorkbook.Unprotect password:=pass
     
     ' Ocultando algunas
     Sheets(1).Visible = True
@@ -57,10 +58,14 @@ Private Sub Workbook_Open()
     
     ' Protegiendo las hojas
     For Each hojita In Application.Worksheets
-        hojita.Protect password:=password, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
+        'hojita.Protect password:=pass, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
     Next hojita
     
-    ActiveWorkbook.Protect password:=password
+    ' Posicionando
+    Sheets(1).Activate
+    Sheets(1).Range("A9").Activate
+    
+    ActiveWorkbook.Protect password:=pass
 End Sub
 
 
