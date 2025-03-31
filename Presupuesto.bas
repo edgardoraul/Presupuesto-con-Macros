@@ -2,6 +2,14 @@ Attribute VB_Name = "Presupuesto"
 Option Explicit
 Public Ruta As String
 Public ultimaConDatos As Integer
+Public grupo As String
+Public url As String
+Public codigo As String
+Public carpetaPrincipal As String
+Public carpetaCodigo As String
+Public imagenUrl As String
+Public imagenDestino As String
+
 ' Guarda una copia en pdf y abre el archivo
 Sub guardaPdf()
     Dim Rutita As String
@@ -94,12 +102,12 @@ Sub darFormato()
         .CenterVertically = False
         '.PrintArea = ActiveSheet.Range("A1:H21")
         .Zoom = False
-        .FitToPagesTall = 1
+        '.FitToPagesTall =
         .FitToPagesWide = 1
     End With
     
 End Sub
-Sub creandoRuta()
+Function creandoRuta()
     Dim hojita As Worksheet
     Dim ws As Object
     Set ws = CreateObject("WScript.network")
@@ -112,7 +120,7 @@ Sub creandoRuta()
     Else
         Ruta = "\\EDGAR\Web\imagenes_rerda\"
     End If
-End Sub
+End Function
 
 Function mostrarErrorRed()
     MsgBox ("Hay que prender la computadora EDGAR")
@@ -126,3 +134,85 @@ Function ultima()
         Exit Function
     End If
 End Function
+
+Function EstaEnGrupoDeTrabajo() As Boolean
+    Dim objWMI As Object
+    Dim objItem As Object
+    Dim colItems As Object
+    Dim strGrupoTrabajo As String
+    
+    grupo = "RERDA"
+    
+    ' Obtener información del sistema
+    Set objWMI = GetObject("winmgmts:\\.\root\cimv2")
+    Set colItems = objWMI.ExecQuery("Select * from Win32_ComputerSystem")
+    
+    ' Extraer el grupo de trabajo
+    For Each objItem In colItems
+        strGrupoTrabajo = objItem.Workgroup
+        Exit For
+    Next
+    
+    Call VerificarRed(grupo)
+End Function
+
+Sub VerificarRed(red As String)
+    url = "https://raw.githubusercontent.com/edgardoraul/imagenes_rerda/main/"
+    If red = grupo Then
+        Call creandoRuta
+    Else
+        Call DescargarImagen(url, codigo)
+    End If
+End Sub
+
+
+
+Function DescargarImagen(url As String, codigo As String)
+    Dim fso As Object
+    
+    Dim http As Object
+    Dim stream As Object
+    
+    ' Obtener la ruta del workbook actual
+    carpetaPrincipal = ThisWorkbook.Path & "\imagenes_rerda"
+    carpetaCodigo = carpetaPrincipal & "\" & codigo
+    imagenUrl = url & codigo & "/1.jpg"
+    imagenDestino = carpetaCodigo & "\1.jpg"
+
+    
+    ' Crear objeto FileSystemObject
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    ' Crear carpeta principal si no existe
+    If Not fso.FolderExists(carpetaPrincipal) Then
+        fso.CreateFolder carpetaPrincipal
+    End If
+    
+    ' Crear carpeta de código si no existe
+    If Not fso.FolderExists(carpetaCodigo) Then
+        fso.CreateFolder carpetaCodigo
+    End If
+    
+    ' Actualizar la dirección de las carpetas
+    Ruta = carpetaCodigo
+    
+    ' Descargar la imagen
+    Set http = CreateObject("MSXML2.XMLHTTP")
+    http.Open "GET", imagenUrl, False
+    http.send
+    
+    If http.Status = 200 Then
+        Set stream = CreateObject("ADODB.Stream")
+        stream.Type = 1 ' Binario
+        stream.Open
+        stream.Write http.responseBody
+        stream.SaveToFile imagenDestino, 2 ' Guardar archivo
+        stream.Close
+        Set stream = Nothing
+    End If
+    
+    ' Limpiar objetos
+    Set http = Nothing
+    Set fso = Nothing
+End Function
+

@@ -51,14 +51,15 @@ Private Sub Workbook_Open()
 
    
     ' Actualizando la ruta
-    Call creandoRuta
+    'Call creandoRuta
+    Call EstaEnGrupoDeTrabajo
     
     ' Dar formato de impresión
     Call darFormato
     
     ' Protegiendo las hojas
     For Each hojita In Application.Worksheets
-        'hojita.Protect password:=pass, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
+        hojita.Protect password:=pass, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
     Next hojita
     
     ' Posicionando

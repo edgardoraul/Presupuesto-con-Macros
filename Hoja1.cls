@@ -12,21 +12,24 @@ Option Explicit
 Private Sub Worksheet_Change(ByVal Target As Range)
     Dim rng As Range
     Dim cel As Range
-    Dim codigo As String
     Dim imagePath As String
     Dim imgPath As String
     Dim existingPic As Picture
     Dim picToDelete As Picture
     Dim originalRowHeight As Double
     Dim rowHasImage As Boolean
-    'Dim ultimaConDatos As Integer
     Dim ws As Worksheet
     Dim pass As String
+    
+    carpetaPrincipal = ""
+    carpetaCodigo = ""
+    imagenUrl = ""
+    imagenDestino = ""
 
     pass = "Rerda2024" ' Contraseña para proteger y desproteger
     Set ws = Me ' Refierete a la hoja actual
     
-    Call creandoRuta
+    
     
     originalRowHeight = 18
     
@@ -43,10 +46,15 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         ws.Unprotect password:=pass
 
         For Each cel In rng
+            'Call creandoRuta
             codigo = cel.Value
+            
+            
             If codigo <> "" Then
+                Call EstaEnGrupoDeTrabajo
                 ' Comprobar si la carpeta correspondiente al código del producto existe
-                imgPath = Ruta & codigo & "\"
+                'imgPath = Ruta & codigo & "\"
+                imgPath = carpetaCodigo & "\"
                 
                 Debug.Print imgPath
                 
