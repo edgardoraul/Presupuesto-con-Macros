@@ -52,7 +52,7 @@ Private Sub Workbook_Open()
    
     ' Actualizando la ruta
     'Call creandoRuta
-    Call EstaEnGrupoDeTrabajo
+    'Call EstaEnGrupoDeTrabajo
     
     ' Dar formato de impresión
     Call darFormato
@@ -60,6 +60,8 @@ Private Sub Workbook_Open()
     ' Protegiendo las hojas
     For Each hojita In Application.Worksheets
         hojita.Protect password:=pass, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
+        Application.EnableEvents = True ' Activar eventos
+        Application.ScreenUpdating = True
     Next hojita
     
     ' Posicionando
@@ -67,10 +69,9 @@ Private Sub Workbook_Open()
     Sheets(1).Range("A9").Activate
     
     ActiveWorkbook.Protect password:=pass
+    Application.EnableEvents = True ' Activar eventos
+    Application.ScreenUpdating = True
+    ActiveCell.Select  ' Asegura que el cursor se muestre nuevamente
 End Sub
-
-
-
-
 
 

@@ -13,7 +13,6 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     Dim rng As Range
     Dim cel As Range
     Dim imagePath As String
-    Dim imgPath As String
     Dim existingPic As Picture
     Dim picToDelete As Picture
     Dim originalRowHeight As Double
@@ -46,15 +45,10 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         ws.Unprotect password:=pass
 
         For Each cel In rng
-            'Call creandoRuta
             codigo = cel.Value
-            
             
             If codigo <> "" Then
                 Call EstaEnGrupoDeTrabajo
-                ' Comprobar si la carpeta correspondiente al código del producto existe
-                'imgPath = Ruta & codigo & "\"
-                imgPath = carpetaCodigo & "\"
                 
                 Debug.Print imgPath
                 
@@ -129,9 +123,10 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         
         ' Proteger la hoja después de hacer cambios
         ws.Protect password:=pass, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
-        Application.EnableEvents = True ' Aactivar eventos
+        Application.EnableEvents = True ' Activar eventos
+        Application.ScreenUpdating = True
+        ActiveCell.Select  ' Asegura que el cursor se muestre nuevamente
     End If
-
-    Application.EnableEvents = True ' Re-activar eventos
 End Sub
+
 

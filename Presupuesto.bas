@@ -9,6 +9,7 @@ Public carpetaPrincipal As String
 Public carpetaCodigo As String
 Public imagenUrl As String
 Public imagenDestino As String
+Public imgPath As String
 
 ' Guarda una copia en pdf y abre el archivo
 Sub guardaPdf()
@@ -62,7 +63,8 @@ Sub borrarFila()
     
     
     Debug.Print "La última fila es " & ultimaConDatos
-    If Cells(9, 1).Value = "" And Cells(9, 3).Value = "" And Cells(9, 4).Value = "" And Cells(9, 5).Value = "" And Cells(9, 6).Value = "" Then
+    'If Cells(9, 1).Value = "" And Cells(9, 3).Value = "" And Cells(9, 4).Value = "" And Cells(9, 5).Value = "" And Cells(9, 6).Value = "" Then
+    If ultimaConDatos > 9 Then
         Rows(9).Delete
         ultimaConDatos = Cells(8, 1).End(xlDown).Row
     ElseIf ultimaConDatos <= 9 Then
@@ -88,8 +90,20 @@ Sub borrarFila()
 End Sub
 
 Sub darFormato()
-' Formato de impresión
-    With ActiveSheet.PageSetup
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim pageBreakRow As Long
+    Dim totalRows As Long
+    Dim minRowsOnLastPage As Long
+    
+    Set ws = ActiveSheet
+    minRowsOnLastPage = 9 ' Cantidad mínima de filas que deben estar completas en la última página
+    
+    ' Última fila con datos
+    lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row + 9
+    
+    ' Configuración de impresión
+    With ws.PageSetup
         .Orientation = xlPortrait
         .PaperSize = xlPaperA4
         .LeftMargin = Application.CentimetersToPoints(0.64)
@@ -100,13 +114,33 @@ Sub darFormato()
         .FooterMargin = Application.CentimetersToPoints(0.76)
         .CenterHorizontally = True
         .CenterVertically = False
-        '.PrintArea = ActiveSheet.Range("A1:H21")
         .Zoom = False
-        '.FitToPagesTall =
         .FitToPagesWide = 1
     End With
     
+    ' Restablecer saltos de página y cambiar a vista previa de saltos
+    ws.ResetAllPageBreaks
+    ActiveWindow.View = xlPageBreakPreview
+    
+    ' Verificar si hay al menos un salto de página horizontal
+    If ws.HPageBreaks.Count > 0 Then
+        pageBreakRow = ws.HPageBreaks(1).Location.Row - 1 + 9
+    Else
+        pageBreakRow = lastRow ' Si no hay saltos de página, tomar la última fila
+    End If
+    
+    ' Si el salto de página corta las últimas 9 filas, reajustar el área de impresión
+    If (lastRow - pageBreakRow) < minRowsOnLastPage Then
+        totalRows = lastRow - minRowsOnLastPage + 9
+        ws.PageSetup.PrintArea = ws.Range("A1:H" & totalRows).Address
+    Else
+        ws.PageSetup.PrintArea = ws.Range("A1:H" & lastRow).Address
+    End If
+    
+    ActiveWindow.View = xlNormalView ' Volver a la vista normal
 End Sub
+
+
 Function creandoRuta()
     Dim hojita As Worksheet
     Dim ws As Object
@@ -120,6 +154,7 @@ Function creandoRuta()
     Else
         Ruta = "\\EDGAR\Web\imagenes_rerda\"
     End If
+    imgPath = Ruta & codigo & "\"
 End Function
 
 Function mostrarErrorRed()
@@ -214,5 +249,7 @@ Function DescargarImagen(url As String, codigo As String)
     ' Limpiar objetos
     Set http = Nothing
     Set fso = Nothing
+    
+    imgPath = carpetaCodigo & "\"
 End Function
 
