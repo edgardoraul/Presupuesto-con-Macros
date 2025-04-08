@@ -60,7 +60,8 @@ End Sub
 
 Sub borrarFila()
     Dim i As Byte
-    
+    ' Debe haber la cantidad
+    Call ultima
     
     Debug.Print "La última fila es " & ultimaConDatos
     'If Cells(9, 1).Value = "" And Cells(9, 3).Value = "" And Cells(9, 4).Value = "" And Cells(9, 5).Value = "" And Cells(9, 6).Value = "" Then
@@ -188,7 +189,7 @@ Function EstaEnGrupoDeTrabajo() As Boolean
         Exit For
     Next
     
-    Call VerificarRed(grupo)
+    Call VerificarRed(strGrupoTrabajo)
 End Function
 
 Sub VerificarRed(red As String)
