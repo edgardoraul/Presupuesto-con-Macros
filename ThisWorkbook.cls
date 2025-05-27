@@ -10,8 +10,8 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private Sub Workbook_BeforeClose(Cancel As Boolean)
-    Dim pass As String
-    pass = "Rerda2024" ' Contraseña para proteger y desproteger
+    'Dim pass As String
+    'pass = "Rerda2024" ' Contraseña para proteger y desproteger
     ' Desactivo el cuadro de diálogo.
     Cancel = False
     
@@ -24,23 +24,25 @@ Private Sub Workbook_BeforeSave(ByVal SaveAsUI As Boolean, Cancel As Boolean)
     Cancel = False
     Dim nombre As String
     Dim fecha As String
-    fecha = Year(Date) & "-" & Month(Date) & "-" & Day(Date)
+    fecha = Format(Date, "yyyy") & "-" & Format(Date, "mm") & "-" & Format(Date, "dd")
     
     ' Sistema de control
-    If Worksheets(1).Range("B4").Value = "" Then
-        MsgBox ("Te faltó el nombre o razón social.")
-        Worksheets(1).Range("B4").Activate
-        Exit Sub
-    End If
+    With Sheets("Presupuesto")
+        If .Range("B4").Value = "" Then
+            MsgBox ("Te faltó el nombre o razón social.")
+            .Range("B4").Activate
+            Exit Sub
+        End If
+    End With
     
-    nombre = ThisWorkbook.Path & "\" & fecha & ". PRESUPUESTO - " & Worksheets(1).Range("B4").Value & ".xlsm"
+    nombre = ThisWorkbook.Path & "\" & fecha & ". " & Sheets("Presupuesto").Range("B4").Value & ".xlsm"
     ActiveWorkbook.Save
 End Sub
 
 Private Sub Workbook_Open()
     Dim hojita As Worksheet
     Dim pass As String
-    pass = "Rerda2024"
+    'pass = "Rerda2024"
       
     ActiveWorkbook.Unprotect password:=pass
     

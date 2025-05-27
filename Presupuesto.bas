@@ -10,29 +10,33 @@ Public carpetaCodigo As String
 Public imagenUrl As String
 Public imagenDestino As String
 Public imgPath As String
+Public Const pass As String = "Rerda2024"
 
 ' Guarda una copia en pdf y abre el archivo
 Sub guardaPdf()
+    Call darFormato
     Dim Rutita As String
     Dim nombre As String
     Rutita = ActiveWorkbook.Path
-    nombre = Year(Date) & "-" & Month(Date) & "-" & Day(Date) & ". PRESUPUESTO - " & Range("B4").Value
+    nombre = Year(Date) & "-" & Month(Date) & "-" & Day(Date) & ". " & Range("B4").Value
 
     Dim fecha As String
-    fecha = Year(Date) & "-" & Month(Date) & "-" & Day(Date)
+    fecha = Format(Date, "yyyy") & "-" & Format(Date, "mm") & "-" & Format(Date, "dd")
     
     ' Sistema de control
-    If Worksheets(1).Range("B4").Value = "" Then
-        MsgBox ("Te faltó el nombre o razón social.")
-        Worksheets(1).Range("B4").Activate
-        Exit Sub
-    End If
+    With Sheets("Presupuesto")
+        If .Range("B4").Value = "" Then
+            MsgBox ("Te faltó el nombre o razón social.")
+            .Range("B4").Activate
+            Exit Sub
+        End If
+    End With
 
-    nombre = ThisWorkbook.Path & "\" & fecha & ". PRESUPUESTO - " & Worksheets(1).Range("B4").Value & ".xlsm"
+    nombre = ThisWorkbook.Path & "\" & fecha & ". " & Sheets("Presupuesto").Range("B4").Value & ".xlsm"
     ThisWorkbook.SaveCopyAs nombre
     
     ActiveWorkbook.Save
-    nombre = fecha & ". PRESUPUESTO - " & Worksheets(1).Range("B4").Value
+    nombre = fecha & ". " & Sheets("Presupuesto").Range("B4").Value
     ActiveSheet.ExportAsFixedFormat Type:=xlTypePDF, Filename:= _
         Rutita & "\" & nombre & ".pdf", _
         Quality:=xlQualityStandard, IncludeDocProperties:=True, IgnorePrintAreas _
@@ -50,12 +54,12 @@ Sub insertarFila()
     ' Inserta una fila arriba, copiando el formato de la de abajo.
     Rows(9).Insert Shift:=xlShiftUp, CopyOrigin:=xlFormatFromRightOrBelow
     Cells(9, 1).Activate
-    'ultimaConDatos = Cells(Rows.Count, 1).End(xlUp).Row
     Call ultima
     Debug.Print "La última fila es " & ultimaConDatos
     
     ' Actualiza la autosuma
     Call actualizarSuma(ultimaConDatos)
+    
 End Sub
 
 Sub borrarFila()
@@ -64,7 +68,7 @@ Sub borrarFila()
     Call ultima
     
     Debug.Print "La última fila es " & ultimaConDatos
-    'If Cells(9, 1).Value = "" And Cells(9, 3).Value = "" And Cells(9, 4).Value = "" And Cells(9, 5).Value = "" And Cells(9, 6).Value = "" Then
+    
     If ultimaConDatos > 9 Then
         Rows(9).Delete
         ultimaConDatos = Cells(8, 1).End(xlDown).Row
@@ -82,28 +86,28 @@ Sub borrarFila()
             End If
         Next i
     End If
+    
     Cells(9, 1).Activate
-    'ultimaConDatos = Cells(8, 1).End(xlDown).Row
-    'ultimaConDatos = Cells(Rows.Count, 1).End(xlUp).Row
     Call ultima
+    
     Debug.Print "La última fila es " & ultimaConDatos
+    
     actualizarSuma (ultimaConDatos)
+    
 End Sub
 
 Sub darFormato()
     Dim ws As Worksheet
     Dim lastRow As Long
-    Dim pageBreakRow As Long
-    Dim totalRows As Long
-    Dim minRowsOnLastPage As Long
-    
+    Dim i As Integer
+    Dim ultPageBreakRow As Long
+    Dim totalPageBreaks As Long
+
     Set ws = ActiveSheet
-    minRowsOnLastPage = 9 ' Cantidad mínima de filas que deben estar completas en la última página
-    
-    ' Última fila con datos
+    Call ultima
+
     lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row + 9
-    
-    ' Configuración de impresión
+
     With ws.PageSetup
         .Orientation = xlPortrait
         .PaperSize = xlPaperA4
@@ -118,24 +122,33 @@ Sub darFormato()
         .Zoom = False
         .FitToPagesWide = 1
     End With
-    
-    ' Restablecer saltos de página y cambiar a vista previa de saltos
+
+    ' Forzar recálculo de saltos de página
+    Application.PrintCommunication = False
     ws.ResetAllPageBreaks
+    Application.PrintCommunication = True
+
     ActiveWindow.View = xlPageBreakPreview
-    
-    ' Verificar si hay al menos un salto de página horizontal
-    If ws.HPageBreaks.Count > 0 Then
-        pageBreakRow = ws.HPageBreaks(1).Location.Row - 1 + 9
-    Else
-        pageBreakRow = lastRow ' Si no hay saltos de página, tomar la última fila
-    End If
-    
-    ' Si el salto de página corta las últimas 9 filas, reajustar el área de impresión
-    If (lastRow - pageBreakRow) < minRowsOnLastPage Then
-        totalRows = lastRow - minRowsOnLastPage + 9
-        ws.PageSetup.PrintArea = ws.Range("A1:H" & totalRows).Address
-    Else
-        ws.PageSetup.PrintArea = ws.Range("A1:H" & lastRow).Address
+
+    totalPageBreaks = ws.HPageBreaks.Count
+
+    If totalPageBreaks >= 1 Then
+        ultPageBreakRow = ws.HPageBreaks(totalPageBreaks).Location.Row
+
+        If ultPageBreakRow >= lastRow - 9 And ultPageBreakRow <= lastRow Then
+            Dim filaSaltoManual As Long
+            filaSaltoManual = lastRow - 9
+            
+            ' Eliminar salto automático cercano si coincide
+            For i = ws.HPageBreaks.Count To 1 Step -1
+                If ws.HPageBreaks(i).Location.Row = filaSaltoManual Then
+                    ws.HPageBreaks(i).Delete
+                End If
+            Next i
+
+            ' Agregar salto manual
+            ws.HPageBreaks.Add Before:=ws.Rows(filaSaltoManual)
+        End If
     End If
     
     ActiveWindow.View = xlNormalView ' Volver a la vista normal
@@ -186,7 +199,8 @@ Function EstaEnGrupoDeTrabajo() As Boolean
     ' Extraer el grupo de trabajo
     For Each objItem In colItems
         strGrupoTrabajo = objItem.Workgroup
-        Exit For
+        Debug.Print strGrupoTrabajo
+        'Exit For
     Next
     
     Call VerificarRed(strGrupoTrabajo)
@@ -208,6 +222,8 @@ Function DescargarImagen(url As String, codigo As String)
     
     Dim http As Object
     Dim stream As Object
+    
+     Application.EnableEvents = True ' Re-activar eventos
     
     ' Obtener la ruta del workbook actual
     carpetaPrincipal = ThisWorkbook.Path & "\imagenes_rerda"

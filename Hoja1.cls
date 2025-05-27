@@ -25,7 +25,7 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     imagenUrl = ""
     imagenDestino = ""
 
-    pass = "Rerda2024" ' Contraseña para proteger y desproteger
+    'pass = "Rerda2024" ' Contraseña para proteger y desproteger
     Set ws = Me ' Refierete a la hoja actual
     
     
@@ -88,11 +88,13 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                         If cel.Column <= 7 And cel.Row >= 8 Then
                             ws.Cells(cel.Row, 1).Resize(1, 8).Borders(xlEdgeTop).LineStyle = xlContinuous
                         End If
-
+                        
                     Else
+                        
                         ' Restaurar la altura original de la fila, sólo si no hay imagen, de lo contrario se autoajusta al contenido
                         If rowHasImage Then
                             cel.EntireRow.RowHeight = originalRowHeight
+                            cel.EntireRow.AutoFit
                         End If
                         rowHasImage = False
                     End If
@@ -123,9 +125,11 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         
         ' Proteger la hoja después de hacer cambios
         ws.Protect password:=pass, DrawingObjects:=False, Contents:=True, Scenarios:=True, AllowFormattingRows:=True, AllowInsertingRows:=True, AllowDeletingRows:=True
-        Application.EnableEvents = True ' Activar eventos
+        
+        
+        Application.EnableEvents = True
         Application.ScreenUpdating = True
-        ActiveCell.Select  ' Asegura que el cursor se muestre nuevamente
+        ActiveCell.Select
     End If
 End Sub
 
