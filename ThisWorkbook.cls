@@ -10,11 +10,7 @@ Attribute VB_Exposed = True
 Option Explicit
 
 Private Sub Workbook_BeforeClose(Cancel As Boolean)
-    'Dim pass As String
-    'pass = "Rerda2024" ' Contraseña para proteger y desproteger
-    ' Desactivo el cuadro de diálogo.
     Cancel = False
-    
     ActiveWorkbook.Protect password:=pass
     ActiveWorkbook.Save
 End Sub
@@ -42,7 +38,7 @@ End Sub
 Private Sub Workbook_Open()
     Dim hojita As Worksheet
     Dim pass As String
-    'pass = "Rerda2024"
+    pass = "Rerda2024"
       
     ActiveWorkbook.Unprotect password:=pass
     

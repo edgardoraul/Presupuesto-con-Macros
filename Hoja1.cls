@@ -25,7 +25,7 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     imagenUrl = ""
     imagenDestino = ""
 
-    'pass = "Rerda2024" ' Contraseña para proteger y desproteger
+    pass = "Rerda2024" ' Contraseña para proteger y desproteger
     Set ws = Me ' Refierete a la hoja actual
     
     

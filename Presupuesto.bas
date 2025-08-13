@@ -99,14 +99,23 @@ End Sub
 Sub darFormato()
     Dim ws As Worksheet
     Dim lastRow As Long
-    Dim i As Integer
+    Dim i As Long 'Cambiado a Long por buena práctica para manejar más filas
     Dim ultPageBreakRow As Long
     Dim totalPageBreaks As Long
 
     Set ws = ActiveSheet
+    
+    ' Se asume que la macro "ultima" existe en tu proyecto
+    On Error Resume Next ' Si la macro "ultima" no existe, evita un error y continúa
     Call ultima
+    On Error GoTo 0
+    
+    ' Asegurarse de que la vista no esté en PageBreakPreview para obtener la última fila correctamente
+    If ActiveWindow.View = xlPageBreakPreview Then
+        ActiveWindow.View = xlNormalView
+    End If
 
-    lastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row + 9
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row + 9
 
     With ws.PageSetup
         .Orientation = xlPortrait
@@ -121,13 +130,14 @@ Sub darFormato()
         .CenterVertically = False
         .Zoom = False
         .FitToPagesWide = 1
+        .PrintArea = "" ' Limpiar área de impresión para un recálculo correcto
     End With
 
-    ' Forzar recálculo de saltos de página
-    Application.PrintCommunication = False
+    ' --- SECCIÓN MODIFICADA PARA COMPATIBILIDAD ---
+    ' Eliminar saltos de página manuales previos
     ws.ResetAllPageBreaks
-    Application.PrintCommunication = True
-
+    
+    ' Cambiar a la vista de salto de página fuerza el recálculo en TODAS las versiones de Excel
     ActiveWindow.View = xlPageBreakPreview
 
     totalPageBreaks = ws.HPageBreaks.Count
@@ -135,23 +145,19 @@ Sub darFormato()
     If totalPageBreaks >= 1 Then
         ultPageBreakRow = ws.HPageBreaks(totalPageBreaks).Location.Row
 
-        If ultPageBreakRow >= lastRow - 9 And ultPageBreakRow <= lastRow Then
+        ' Comprueba si el último salto de página está en las últimas 9 filas del contenido
+        If ultPageBreakRow >= (lastRow - 9) And ultPageBreakRow <= lastRow Then
             Dim filaSaltoManual As Long
             filaSaltoManual = lastRow - 9
             
-            ' Eliminar salto automático cercano si coincide
-            For i = ws.HPageBreaks.Count To 1 Step -1
-                If ws.HPageBreaks(i).Location.Row = filaSaltoManual Then
-                    ws.HPageBreaks(i).Delete
-                End If
-            Next i
-
-            ' Agregar salto manual
+            ' No es necesario eliminar el salto automático, agregar uno manual lo anula.
+            ' Se agrega el salto de página manual en la posición deseada.
             ws.HPageBreaks.Add Before:=ws.Rows(filaSaltoManual)
         End If
     End If
     
-    ActiveWindow.View = xlNormalView ' Volver a la vista normal
+    ' Volver a la vista normal al finalizar
+    ActiveWindow.View = xlNormalView
 End Sub
 
 
